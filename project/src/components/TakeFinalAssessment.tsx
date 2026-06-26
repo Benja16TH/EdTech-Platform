@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { User, FinalAssessment, UserAssessmentAttempt } from '../types';
 
 interface TakeFinalAssessmentProps {
@@ -14,7 +14,6 @@ interface TakeFinalAssessmentProps {
 export default function TakeFinalAssessment({
   courseTitle,
   assessment,
-  user,
   lastAttempt,
   onSubmit,
   onBack,

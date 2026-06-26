@@ -27,11 +27,6 @@ const [selectedCertificateCourse, setSelectedCertificateCourse] = useState<any>(
   setShowCertificate(true);
 };
 
-  const getUserProgress = (courseId: string): number => {
-    const enrollment = enrollments.find(e => e.userId === user.id && e.courseId === courseId);
-    return enrollment?.progress || 0;
-  };
-
 const getEnrollment = (courseId: string) => {
   return enrollments.find(
     e => e.userId === user.id && e.courseId === courseId

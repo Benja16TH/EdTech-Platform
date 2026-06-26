@@ -46,7 +46,9 @@ type AppView =
   | 'admin-support'
   | 'user-management'
   | 'profile'
-  | 'certificates'| 'assessment-manage' | 'assessment-take' | 'assessment-results';
+  | 'certificates'| 'assessment-manage' | 'assessment-take' | 'assessment-results'
+  | 'login'
+  | 'support';
 
 function App() {
   const [courses, setCourses] = useState<Course[]>(mockCourses);

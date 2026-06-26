@@ -19,7 +19,6 @@ interface QuestionForm {
 export default function FinalAssessmentManagement({
   course,
   assessment,
-  user,
   onUpdateAssessment,
   onBack,
 }: FinalAssessmentManagementProps) {
