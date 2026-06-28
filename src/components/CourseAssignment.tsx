@@ -15,6 +15,7 @@ interface CourseAssignmentProps {
 export default function CourseAssignment({
   courses,
   assignments,
+  users,
   user,
   onAssignCourse,
   onUnassignCourse,
