@@ -405,6 +405,7 @@ if (passed) {
       <CourseAssignment
         courses={courses}
         assignments={assignments}
+        users={users}
         user={currentUser}
         onAssignCourse={handleAssignCourse}
         onUnassignCourse={handleUnassignCourse}

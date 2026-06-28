@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ArrowLeft, Search, UserPlus, Check, Users, BookOpen, X } from 'lucide-react';
 import { Course, User, CourseAssignment as CourseAssignmentType } from '../types';
-import { mockCollaborators } from '../data/extendedMockData';
 
 interface CourseAssignmentProps {
   courses: Course[];
   assignments: CourseAssignmentType[];
+  users: User[];
   user: User;
   onAssignCourse: (userId: string, courseId: string) => void;
   onUnassignCourse: (userId: string, courseId: string) => void;
@@ -25,7 +25,7 @@ export default function CourseAssignment({
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const filteredCollaborators = mockCollaborators.filter(c =>
+  const filteredCollaborators = users.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
