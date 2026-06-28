@@ -34,7 +34,9 @@ import {
   FinalAssessment,
   UserAssessmentAttempt,
   Notification,
-  Certificate
+  Certificate,
+  ActivityLog,
+  ActivityAction
 } from './types';
 type AppView =
   | 'dashboard'
@@ -72,6 +74,18 @@ function App() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [assessmentManagingCourseId, setAssessmentManagingCourseId] = useState<string | null>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+
+  const addActivityLog = (userId: string | null, action: ActivityAction, description: string) => {
+    const log: ActivityLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      userId,
+      action,
+      description,
+      createdAt: new Date(),
+    };
+    setActivityLogs(prev => [log, ...prev]);
+  };
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
@@ -109,6 +123,8 @@ const generateCertificate = (
   };
 
   setCertificates(prev => [...prev, certificate]);
+  const course = courses.find(c => c.id === courseId);
+  addActivityLog(userId, 'certificate_generated', `Certificado generado: "${course?.title || ''}"`);
 };
   
 
@@ -156,10 +172,12 @@ const generateCertificate = (
 
   const handleAddUser = (newUser: User) => {
     setUsers(prev => [...prev, { ...newUser, createdAt: new Date() }]);
+    addActivityLog(newUser.id, 'user_created', `Usuario "${newUser.name}" fue registrado en la plataforma`);
   };
 
   const handleUpdateUser = (updatedUser: User) => {
     setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+    addActivityLog(updatedUser.id, 'user_updated', `Usuario "${updatedUser.name}" fue actualizado`);
   };
 
   const handleToggleUserActive = (userId: string) => {
@@ -198,6 +216,7 @@ const generateCertificate = (
         createdAt: new Date(),
       },
     ]);
+    addActivityLog(userId, 'course_assigned', `Curso "${course.title}" asignado`);
   }
 }
   };
@@ -308,6 +327,8 @@ if (passed) {
   );
 
   if (course) {
+    addActivityLog(currentUser.id, 'course_completed', `Curso "${course.title}" completado`);
+    addActivityLog(currentUser.id, 'assessment_passed', `Evaluación aprobada: "${course.title}"`);
     setNotifications(prev => [
       ...prev,
       {
@@ -506,6 +527,7 @@ if (passed) {
           assignments={assignments}
           assessmentAttempts={assessmentAttempts}
           certificates={certificates}
+          activityLogs={activityLogs}
           onBack={() => {
             setProfileUserId(null);
             setCurrentView(currentUser.role === 'admin' ? 'user-management' : 'dashboard');
@@ -555,6 +577,8 @@ if (passed) {
     return (
       <AdminPanel
         courses={courses}
+        users={users}
+        activityLogs={activityLogs}
         user={currentUser}
         onAddCourse={handleAddCourse}
         onUpdateCourse={handleUpdateCourse}

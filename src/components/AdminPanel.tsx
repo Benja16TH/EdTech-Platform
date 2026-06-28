@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Plus, CreditCard as Edit2, X, ArrowLeft, Save, BookOpen, Users, BarChart3, Layers, Trash2, Check, Headphones } from 'lucide-react';
-import { Course, User, CourseLevel, CourseStatus } from '../types';
+import { Plus, CreditCard as Edit2, X, ArrowLeft, Save, BookOpen, Users, BarChart3, Layers, Trash2, Check, Headphones, Activity, Clock, User as UserIcon, Award, UserPlus } from 'lucide-react';
+import { Course, User, CourseLevel, CourseStatus, ActivityLog } from '../types';
 
 interface AdminPanelProps {
   courses: Course[];
+  users: User[];
+  activityLogs: ActivityLog[];
   user: User;
   onAddCourse: (course: Course) => void;
   onUpdateCourse: (course: Course) => void;
@@ -57,7 +59,7 @@ const durationOptions = [
   '40 horas',
 ];
 
-export default function AdminPanel({ courses, user, onAddCourse, onUpdateCourse, onDeleteCourse, onBack, onNavigate }: AdminPanelProps) {
+export default function AdminPanel({ courses, users, activityLogs, user, onAddCourse, onUpdateCourse, onDeleteCourse, onBack, onNavigate }: AdminPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CourseForm>(initialFormState);
@@ -525,6 +527,50 @@ export default function AdminPanel({ courses, user, onAddCourse, onUpdateCourse,
             </button>
           </div>
         )}
+
+        <div className="mt-8 bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4">
+            <h3 className="text-lg font-bold text-white flex items-center">
+              <Activity className="w-5 h-5 mr-2" />
+              Últimas actividades del sistema
+            </h3>
+          </div>
+          <div className="p-6">
+            {activityLogs.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No hay actividades registradas</p>
+            ) : (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {activityLogs.slice(0, 15).map(log => {
+                  const actionUser = users.find(u => u.id === log.userId);
+                  return (
+                    <div key={log.id} className="flex items-start space-x-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        log.action === 'user_created' || log.action === 'user_updated' ? 'bg-blue-100 text-blue-600' :
+                        log.action === 'course_assigned' ? 'bg-amber-100 text-amber-600' :
+                        log.action === 'course_completed' || log.action === 'assessment_passed' ? 'bg-green-100 text-green-600' :
+                        'bg-purple-100 text-purple-600'
+                      }`}>
+                        {log.action === 'user_created' ? <UserPlus className="w-4 h-4" /> :
+                         log.action === 'user_updated' ? <UserIcon className="w-4 h-4" /> :
+                         log.action === 'course_assigned' ? <BookOpen className="w-4 h-4" /> :
+                         log.action === 'assessment_passed' ? <Check className="w-4 h-4" /> :
+                         <Award className="w-4 h-4" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-800">{log.description}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 flex items-center">
+                          <Clock className="w-3 h-3 mr-1 inline" />
+                          {log.createdAt.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {actionUser && <span className="ml-2">por {actionUser.name}</span>}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );

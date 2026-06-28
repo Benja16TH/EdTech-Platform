@@ -1,5 +1,5 @@
 import { ArrowLeft, Mail, Shield, User as UserIcon, Briefcase, Building, CheckCircle, Award, BookOpen, FileText, Activity } from 'lucide-react';
-import { User, Course, UserEnrollment, CourseAssignment, UserAssessmentAttempt, Certificate } from '../types';
+import { User, Course, UserEnrollment, CourseAssignment, UserAssessmentAttempt, Certificate, ActivityLog } from '../types';
 
 interface EmployeeProfileProps {
   profileUser: User;
@@ -8,14 +8,8 @@ interface EmployeeProfileProps {
   assignments: CourseAssignment[];
   assessmentAttempts: UserAssessmentAttempt[];
   certificates: Certificate[];
+  activityLogs: ActivityLog[];
   onBack: () => void;
-}
-
-interface ActivityEvent {
-  id: string;
-  type: 'user_created' | 'course_assigned' | 'course_completed' | 'assessment_passed' | 'certificate_issued';
-  description: string;
-  date: Date;
 }
 
 export default function EmployeeProfile({
@@ -25,6 +19,7 @@ export default function EmployeeProfile({
   assignments,
   assessmentAttempts,
   certificates,
+  activityLogs,
   onBack,
 }: EmployeeProfileProps) {
   const userEnrollments = enrollments.filter(e => e.userId === profileUser.id);
@@ -42,32 +37,9 @@ export default function EmployeeProfile({
 
   const getCourseName = (courseId: string) => courses.find(c => c.id === courseId)?.title || 'Curso eliminado';
 
-  const activityEvents: ActivityEvent[] = [
-    ...(profileUser.createdAt ? [{
-      id: 'created',
-      type: 'user_created' as const,
-      description: `${profileUser.name} fue registrado en la plataforma`,
-      date: profileUser.createdAt,
-    }] : []),
-    ...userAssignments.map(a => ({
-      id: `assign_${a.id}`,
-      type: 'course_assigned' as const,
-      description: `Curso asignado: "${getCourseName(a.courseId)}"`,
-      date: a.assignedAt,
-    })),
-    ...userAssessmentAttempts.filter(a => a.passed).map(a => ({
-      id: `assess_${a.id}`,
-      type: 'assessment_passed' as const,
-      description: `Evaluación aprobada: "${getCourseName(a.courseId)}"`,
-      date: a.attemptedAt,
-    })),
-    ...userCertificates.map(c => ({
-      id: `cert_${c.id}`,
-      type: 'certificate_issued' as const,
-      description: `Certificado generado: "${getCourseName(c.courseId)}"`,
-      date: c.issueDate,
-    })),
-  ].sort((a, b) => b.date.getTime() - a.date.getTime());
+  const userActivityLogs = activityLogs
+    .filter(log => log.userId === profileUser.id)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -237,27 +209,27 @@ export default function EmployeeProfile({
             </h3>
           </div>
           <div className="px-8 py-5">
-            {activityEvents.length === 0 ? (
+            {userActivityLogs.length === 0 ? (
               <p className="text-gray-500 text-center py-6">No hay actividad registrada</p>
             ) : (
               <div className="space-y-4">
-                {activityEvents.slice(0, 20).map(event => (
-                  <div key={event.id} className="flex items-start space-x-4">
+                {userActivityLogs.slice(0, 20).map(log => (
+                  <div key={log.id} className="flex items-start space-x-4">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      event.type === 'user_created' ? 'bg-blue-100 text-blue-600' :
-                      event.type === 'course_assigned' ? 'bg-amber-100 text-amber-600' :
-                      event.type === 'course_completed' || event.type === 'assessment_passed' ? 'bg-green-100 text-green-600' :
+                      log.action === 'user_created' || log.action === 'user_updated' ? 'bg-blue-100 text-blue-600' :
+                      log.action === 'course_assigned' ? 'bg-amber-100 text-amber-600' :
+                      log.action === 'course_completed' || log.action === 'assessment_passed' ? 'bg-green-100 text-green-600' :
                       'bg-purple-100 text-purple-600'
                     }`}>
-                      {event.type === 'user_created' ? <UserIcon className="w-4 h-4" /> :
-                       event.type === 'course_assigned' ? <BookOpen className="w-4 h-4" /> :
-                       event.type === 'assessment_passed' ? <CheckCircle className="w-4 h-4" /> :
+                      {log.action === 'user_created' || log.action === 'user_updated' ? <UserIcon className="w-4 h-4" /> :
+                       log.action === 'course_assigned' ? <BookOpen className="w-4 h-4" /> :
+                       log.action === 'assessment_passed' ? <CheckCircle className="w-4 h-4" /> :
                        <Award className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800">{event.description}</p>
+                      <p className="text-sm text-gray-800">{log.description}</p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {event.date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {log.createdAt.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>

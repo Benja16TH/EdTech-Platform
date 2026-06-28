@@ -128,3 +128,19 @@ export interface Certificate {
   issueDate: Date;
   certificateNumber: string;
 }
+
+export type ActivityAction =
+  | 'user_created'
+  | 'user_updated'
+  | 'course_assigned'
+  | 'course_completed'
+  | 'assessment_passed'
+  | 'certificate_generated';
+
+export interface ActivityLog {
+  id: string;
+  userId: string | null;
+  action: ActivityAction;
+  description: string;
+  createdAt: Date;
+}
