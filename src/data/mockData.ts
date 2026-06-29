@@ -22,9 +22,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Fundamentos del Liderazgo',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: 'Introducción al liderazgo efectivo', duration: '15 min' },
-          { id: 'l2', title: 'Estilos de liderazgo', duration: '20 min' },
-          { id: 'l3', title: 'Comunicación asertiva', duration: '18 min' },
+          { id: 'l1', title: 'Introducción al liderazgo efectivo', description: 'Conoce los fundamentos del liderazgo y su impacto en el entorno laboral actual.', duration: '15 min' },
+          { id: 'l2', title: 'Estilos de liderazgo', description: 'Explora los diferentes estilos de liderazgo y aprende a identificar cuál se adapta mejor a cada situación.', duration: '20 min' },
+          { id: 'l3', title: 'Comunicación asertiva', description: 'Desarrolla habilidades de comunicación asertiva para mejorar las relaciones interpersonales en tu equipo.', duration: '18 min' },
         ],
       },
       {
@@ -32,9 +32,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 2: Gestión de Equipos',
         orderIndex: 2,
         lessons: [
-          { id: 'l4', title: 'Formación de equipos de alto rendimiento', duration: '22 min' },
-          { id: 'l5', title: 'Motivación y compromiso', duration: '25 min' },
-          { id: 'l6', title: 'Resolución de conflictos', duration: '20 min' },
+          { id: 'l4', title: 'Formación de equipos de alto rendimiento', description: 'Aprende las claves para construir equipos sólidos que trabajen de forma coordinada hacia objetivos comunes.', duration: '22 min' },
+          { id: 'l5', title: 'Motivación y compromiso', description: 'Descubre técnicas efectivas para mantener la motivación y el compromiso dentro de tu equipo de trabajo.', duration: '25 min' },
+          { id: 'l6', title: 'Resolución de conflictos', description: 'Domina estrategias para identificar, abordar y resolver conflictos de manera constructiva.', duration: '20 min' },
         ],
       },
       {
@@ -42,8 +42,8 @@ export const mockCourses: Course[] = [
         title: 'Módulo 3: Desarrollo de Talento',
         orderIndex: 3,
         lessons: [
-          { id: 'l7', title: 'Coaching y mentoría', duration: '30 min' },
-          { id: 'l8', title: 'Evaluación del desempeño', duration: '25 min' },
+          { id: 'l7', title: 'Coaching y mentoría', description: 'Implementa programas de coaching y mentoría para potenciar el desarrollo profesional de tu equipo.', duration: '30 min' },
+          { id: 'l8', title: 'Evaluación del desempeño', description: 'Conoce metodologías efectivas para evaluar el rendimiento y proporcionar retroalimentación constructiva.', duration: '25 min' },
         ],
       },
     ],
@@ -69,9 +69,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Funciones Avanzadas',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: 'Funciones lógicas y condicionales', duration: '30 min' },
-          { id: 'l2', title: 'BUSCARV y BUSCARH', duration: '25 min' },
-          { id: 'l3', title: 'Funciones de texto', duration: '20 min' },
+          { id: 'l1', title: 'Funciones lógicas y condicionales', description: 'Aprende a usar SI, Y, O y otras funciones lógicas para automatizar decisiones en tus hojas de cálculo.', duration: '30 min' },
+          { id: 'l2', title: 'BUSCARV y BUSCARH', description: 'Domina las funciones de búsqueda vertical y horizontal para encontrar datos rápidamente en grandes tablas.', duration: '25 min' },
+          { id: 'l3', title: 'Funciones de texto', description: 'Conoce las funciones para manipular texto: concatenar, extraer, limpiar y transformar datos.', duration: '20 min' },
         ],
       },
       {
@@ -79,8 +79,8 @@ export const mockCourses: Course[] = [
         title: 'Módulo 2: Análisis de Datos',
         orderIndex: 2,
         lessons: [
-          { id: 'l4', title: 'Tablas dinámicas', duration: '40 min' },
-          { id: 'l5', title: 'Filtrado y validación', duration: '25 min' },
+          { id: 'l4', title: 'Tablas dinámicas', description: 'Crea y gestiona tablas dinámicas para analizar grandes volúmenes de datos de forma interactiva.', duration: '40 min' },
+          { id: 'l5', title: 'Filtrado y validación', description: 'Implementa filtros avanzados y validación de datos para mantener la integridad de tus reportes.', duration: '25 min' },
         ],
       },
     ],
@@ -106,9 +106,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Fundamentos del Servicio',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: 'La importancia del servicio al cliente', duration: '15 min' },
-          { id: 'l2', title: 'Comunicación efectiva con clientes', duration: '20 min' },
-          { id: 'l3', title: 'Empatía y escucha activa', duration: '18 min' },
+          { id: 'l1', title: 'La importancia del servicio al cliente', description: 'Comprende por qué un servicio excepcional es la clave del éxito empresarial y la fidelización.', duration: '15 min' },
+          { id: 'l2', title: 'Comunicación efectiva con clientes', description: 'Desarrolla habilidades de comunicación verbal y no verbal para atender a tus clientes con profesionalismo.', duration: '20 min' },
+          { id: 'l3', title: 'Empatía y escucha activa', description: 'Aprende a ponerte en el lugar del cliente y a escuchar activamente para entender sus necesidades reales.', duration: '18 min' },
         ],
       },
       {
@@ -116,8 +116,8 @@ export const mockCourses: Course[] = [
         title: 'Módulo 2: Manejo de Situaciones Difíciles',
         orderIndex: 2,
         lessons: [
-          { id: 'l4', title: 'Gestión de quejas y reclamaciones', duration: '25 min' },
-          { id: 'l5', title: 'De-escalada de conflictos', duration: '22 min' },
+          { id: 'l4', title: 'Gestión de quejas y reclamaciones', description: 'Aprende el protocolo para manejar quejas de manera profesional y convertirlas en oportunidades de mejora.', duration: '25 min' },
+          { id: 'l5', title: 'De-escalada de conflictos', description: 'Domina técnicas para reducir la tensión en situaciones conflictivas y encontrar soluciones colaborativas.', duration: '22 min' },
         ],
       },
     ],
@@ -143,9 +143,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Introducción a la Transformación Digital',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: '¿Qué es la transformación digital?', duration: '20 min' },
-          { id: 'l2', title: 'Tecnologías emergentes', duration: '25 min' },
-          { id: 'l3', title: 'Impacto en los procesos empresariales', duration: '22 min' },
+          { id: 'l1', title: '¿Qué es la transformación digital?', description: 'Descubre los fundamentos de la transformación digital y por qué es crucial para la competitividad empresarial.', duration: '20 min' },
+          { id: 'l2', title: 'Tecnologías emergentes', description: 'Explora las tecnologías que están revolucionando los negocios: IA, IoT, blockchain y cloud computing.', duration: '25 min' },
+          { id: 'l3', title: 'Impacto en los procesos empresariales', description: 'Analiza cómo la digitalización transforma los procesos operativos y la experiencia del cliente.', duration: '22 min' },
         ],
       },
       {
@@ -153,9 +153,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 2: Estrategia e Implementación',
         orderIndex: 2,
         lessons: [
-          { id: 'l4', title: 'Planificación de la transformación', duration: '30 min' },
-          { id: 'l5', title: 'Gestión del cambio organizacional', duration: '28 min' },
-          { id: 'l6', title: 'Casos de éxito', duration: '25 min' },
+          { id: 'l4', title: 'Planificación de la transformación', description: 'Aprende a diseñar una hoja de ruta para implementar la transformación digital en tu organización.', duration: '30 min' },
+          { id: 'l5', title: 'Gestión del cambio organizacional', description: 'Conoce estrategias para gestionar la resistencia al cambio y liderar la adopción de nuevas tecnologías.', duration: '28 min' },
+          { id: 'l6', title: 'Casos de éxito', description: 'Analiza casos reales de empresas que lograron una transformación digital exitosa y las lecciones aprendidas.', duration: '25 min' },
         ],
       },
     ],
@@ -181,9 +181,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Normas de Seguridad',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: 'Normativa de seguridad laboral', duration: '20 min' },
-          { id: 'l2', title: 'Prevención de riesgos', duration: '25 min' },
-          { id: 'l3', title: 'Equipo de protección personal', duration: '18 min' },
+          { id: 'l1', title: 'Normativa de seguridad laboral', description: 'Conoce las normativas vigentes en seguridad laboral y las obligaciones legales de la empresa y los trabajadores.', duration: '20 min' },
+          { id: 'l2', title: 'Prevención de riesgos', description: 'Identifica los riesgos laborales más comunes y aprende las medidas preventivas para evitarlos.', duration: '25 min' },
+          { id: 'l3', title: 'Equipo de protección personal', description: 'Aprende a seleccionar, usar y mantener correctamente los equipos de protección personal según cada tarea.', duration: '18 min' },
         ],
       },
     ],
@@ -209,9 +209,9 @@ export const mockCourses: Course[] = [
         title: 'Módulo 1: Principios de Productividad',
         orderIndex: 1,
         lessons: [
-          { id: 'l1', title: 'Técnicas de gestión del tiempo', duration: '22 min' },
-          { id: 'l2', title: 'Priorización de tareas', duration: '18 min' },
-          { id: 'l3', title: 'Matriz de Eisenhower', duration: '20 min' },
+          { id: 'l1', title: 'Técnicas de gestión del tiempo', description: 'Descubre las técnicas más efectivas para administrar tu tiempo y aumentar tu productividad diaria.', duration: '22 min' },
+          { id: 'l2', title: 'Priorización de tareas', description: 'Aprende a identificar qué tareas son realmente importantes y urgentes para enfocar tu energía donde importa.', duration: '18 min' },
+          { id: 'l3', title: 'Matriz de Eisenhower', description: 'Domina la matriz de Eisenhower para clasificar tareas y tomar decisiones rápidas sobre qué hacer primero.', duration: '20 min' },
         ],
       },
       {
@@ -219,8 +219,8 @@ export const mockCourses: Course[] = [
         title: 'Módulo 2: Optimización y Hábitos',
         orderIndex: 2,
         lessons: [
-          { id: 'l4', title: 'Creación de hábitos productivos', duration: '25 min' },
-          { id: 'l5', title: 'Eliminación de distracciones', duration: '20 min' },
+          { id: 'l4', title: 'Creación de hábitos productivos', description: 'Aprende a construir hábitos sostenibles que mejoren tu productividad personal y profesional a largo plazo.', duration: '25 min' },
+          { id: 'l5', title: 'Eliminación de distracciones', description: 'Identifica las principales fuentes de distracción y aplica técnicas para mantener el enfoque en tus tareas.', duration: '20 min' },
         ],
       },
     ],

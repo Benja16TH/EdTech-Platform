@@ -25,7 +25,9 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
   });
   const [lessonFormData, setLessonFormData] = useState({
     title: '',
+    description: '',
     duration: '15 min',
+    videoUrl: '',
   });
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);
@@ -148,7 +150,9 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
   const handleNewLesson = (module: Module) => {
     setLessonFormData({
       title: '',
+      description: '',
       duration: '15 min',
+      videoUrl: '',
     });
     setEditingLesson(null);
     setEditingModule(module);
@@ -158,7 +162,9 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
   const handleEditLesson = (module: Module, lesson: Lesson) => {
     setLessonFormData({
       title: lesson.title,
+      description: lesson.description || '',
       duration: lesson.duration,
+      videoUrl: lesson.videoUrl || '',
     });
     setEditingModule(module);
     setEditingLesson({ module, lesson });
@@ -177,7 +183,7 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
             ...m,
             lessons: m.lessons.map(l =>
               l.id === editingLesson.lesson.id
-                ? { ...l, title: lessonFormData.title, duration: lessonFormData.duration }
+                ? { ...l, title: lessonFormData.title, description: lessonFormData.description || undefined, duration: lessonFormData.duration, videoUrl: lessonFormData.videoUrl || undefined }
                 : l
             ),
           };
@@ -185,7 +191,9 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
           const newLesson: Lesson = {
             id: `lesson_${Date.now()}`,
             title: lessonFormData.title,
+            description: lessonFormData.description || undefined,
             duration: lessonFormData.duration,
+            videoUrl: lessonFormData.videoUrl || undefined,
           };
           return {
             ...m,
@@ -205,7 +213,7 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
     setShowLessonForm(false);
     setEditingLesson(null);
     setEditingModule(null);
-    setLessonFormData({ title: '', duration: '15 min' });
+    setLessonFormData({ title: '', description: '', duration: '15 min', videoUrl: '' });
 
     setTimeout(() => setSuccessMessage(''), 3000);
   };
@@ -486,6 +494,19 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
 
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Descripción
+                          </label>
+                          <textarea
+                            value={lessonFormData.description}
+                            onChange={(e) => setLessonFormData({ ...lessonFormData, description: e.target.value })}
+                            placeholder="Describe el contenido de la lección"
+                            rows={2}
+                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
                             Duración
                           </label>
                           <input
@@ -493,6 +514,19 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
                             value={lessonFormData.duration}
                             onChange={(e) => setLessonFormData({ ...lessonFormData, duration: e.target.value })}
                             placeholder="Ej: 15 min"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            URL del video <span className="text-gray-400 font-normal">(opcional)</span>
+                          </label>
+                          <input
+                            type="url"
+                            value={lessonFormData.videoUrl}
+                            onChange={(e) => setLessonFormData({ ...lessonFormData, videoUrl: e.target.value })}
+                            placeholder="https://www.youtube.com/embed/..."
                             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
@@ -631,9 +665,18 @@ export default function ModuleManagement({ courses, user, onUpdateCourse, onBack
                                       <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
                                         {lessonIndex + 1}
                                       </div>
-                                      <div className="flex-1">
+                                      <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-gray-800">{lesson.title}</p>
                                         <p className="text-sm text-gray-500">{lesson.duration}</p>
+                                        {lesson.description && (
+                                          <p className="text-xs text-gray-400 mt-0.5 truncate">{lesson.description}</p>
+                                        )}
+                                        {lesson.videoUrl && (
+                                          <span className="inline-flex items-center text-xs text-blue-500 mt-0.5">
+                                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M6.5 4.5v11l8-5.5-8-5.5z"/></svg>
+                                            Video
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
 
