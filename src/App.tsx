@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import VirtualClassroom from './components/VirtualClassroom';
@@ -16,6 +16,7 @@ import UserManagement from './components/UserManagement';
 import EmployeeProfile from './components/EmployeeProfile';
 import { mockCourses, mockUsers } from './data/mockData';
 import { mockCollaborators } from './data/extendedMockData';
+import { getCurrentSession, signOutFromSupabase } from './lib/auth';
 import {
   mockEnrollments,
   mockAssignments,
@@ -75,6 +76,15 @@ function App() {
   const [assessmentManagingCourseId, setAssessmentManagingCourseId] = useState<string | null>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+
+  useEffect(() => {
+    getCurrentSession().then(({ user }) => {
+      if (user) {
+        setCurrentUser(user);
+        setCurrentView(user.role === 'admin' ? 'admin' : 'dashboard');
+      }
+    });
+  }, []);
 
   const addActivityLog = (userId: string | null, action: ActivityAction, description: string) => {
     const log: ActivityLog = {
@@ -137,7 +147,8 @@ const generateCertificate = (
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOutFromSupabase();
     setCurrentUser(null);
     setCurrentView('login');
     setSelectedCourseId(null);

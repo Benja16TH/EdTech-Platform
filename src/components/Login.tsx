@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, Eye, EyeOff } from 'lucide-react';
 import { User } from '../types';
+import { signInWithSupabase, isSupabaseConfigured } from '../lib/auth';
 
 interface LoginProps {
   users: User[];
@@ -15,10 +16,26 @@ export default function Login({ users, onLogin }: LoginProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const supabaseEnabled = isSupabaseConfigured();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    if (supabaseEnabled) {
+      const { user, error: authError } = await signInWithSupabase(email, password);
+      if (user) {
+        onLogin(user);
+        setLoading(false);
+        return;
+      }
+      if (authError) {
+        setError(authError);
+        setLoading(false);
+        return;
+      }
+    }
 
     setTimeout(() => {
       const user = users.find(u => u.email === email && u.password === password && u.active !== false);
@@ -110,28 +127,30 @@ export default function Login({ users, onLogin }: LoginProps) {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t">
-              <p className="text-center text-gray-600 text-sm mb-4 font-medium">Cuentas de prueba disponibles:</p>
+            {!supabaseEnabled && (
+              <div className="mt-8 pt-6 border-t">
+                <p className="text-center text-gray-600 text-sm mb-4 font-medium">Cuentas de prueba disponibles:</p>
 
-              <div className="space-y-3">
-                {demoUsers.map(demoUser => (
-                  <button
-                    key={demoUser.id}
-                    onClick={() => handleDemoLogin(demoUser)}
-                    className={`w-full border font-medium py-2 rounded-lg transition-all text-sm ${
-                      demoUser.role === 'admin'
-                        ? 'bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700'
-                        : 'bg-gray-50 hover:bg-gray-100 border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    <div className="font-semibold">{demoUser.name}</div>
-                    <div className={`text-xs ${demoUser.role === 'admin' ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {demoUser.email}{demoUser.role === 'admin' ? ' (Administrador)' : ''}
-                    </div>
-                  </button>
-                ))}
+                <div className="space-y-3">
+                  {demoUsers.map(demoUser => (
+                    <button
+                      key={demoUser.id}
+                      onClick={() => handleDemoLogin(demoUser)}
+                      className={`w-full border font-medium py-2 rounded-lg transition-all text-sm ${
+                        demoUser.role === 'admin'
+                          ? 'bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700'
+                          : 'bg-gray-50 hover:bg-gray-100 border-gray-300 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-semibold">{demoUser.name}</div>
+                      <div className={`text-xs ${demoUser.role === 'admin' ? 'text-blue-600' : 'text-gray-500'}`}>
+                        {demoUser.email}{demoUser.role === 'admin' ? ' (Administrador)' : ''}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
