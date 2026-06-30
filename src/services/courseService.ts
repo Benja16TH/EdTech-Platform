@@ -56,7 +56,7 @@ async function fetchFullCourses(): Promise<Course[] | null> {
     .order('created_at', { ascending: true });
 
   if (courseErr) {
-    console.error('[courseService] Error fetching courses:', courseErr);
+    console.error('[courseService] Error fetching courses:', courseErr.message);
     return null;
   }
   if (!courseRows || courseRows.length === 0) return [];
@@ -70,7 +70,7 @@ async function fetchFullCourses(): Promise<Course[] | null> {
     .order('order_index', { ascending: true });
 
   if (modErr) {
-    console.error('[courseService] Error fetching modules:', modErr);
+    console.error('[courseService] Error fetching modules:', modErr.message);
     return null;
   }
 
@@ -85,7 +85,7 @@ async function fetchFullCourses(): Promise<Course[] | null> {
       .order('order_index', { ascending: true });
 
     if (lesErr) {
-      console.error('[courseService] Error fetching lessons:', lesErr);
+      console.error('[courseService] Error fetching lessons:', lesErr.message);
       return null;
     }
 
