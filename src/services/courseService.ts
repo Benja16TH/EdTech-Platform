@@ -57,10 +57,12 @@ async function fetchFullCourses(): Promise<Course[] | null> {
 
   if (error) {
     console.error('[courseService] Error fetching courses:', error.message);
+    alert(`[DBG] fetchFullCourses error: ${error.message}`);
     return null;
   }
   if (!data || data.length === 0) return [];
 
+  console.log(`[courseService] Fetched ${data.length} courses from Supabase`);
   return data.map((courseRow: Record<string, unknown>) => {
     const rawModules = ((courseRow.modules as Record<string, unknown>[]) || [])
       .sort((a, b) => (a.order_index as number) - (b.order_index as number));
@@ -229,6 +231,11 @@ export async function updateCourse(courseId: string, courseData: Partial<Course>
           .eq('id', courseId)
           .select()
           .single();
+
+        if (ce) {
+          console.error('[courseService] updateCourse error:', ce.message);
+          alert(`[DBG] updateCourse error: ${ce.message}`);
+        }
 
         if (!ce && cr) {
           const modules = courseData.modules !== undefined
