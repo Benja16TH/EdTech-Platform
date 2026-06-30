@@ -1,6 +1,8 @@
 import { User } from '../types';
 import { mockUsers } from '../data/mockData';
 import { mockCollaborators } from '../data/extendedMockData';
+// v2.0.1 — Prepared for Supabase migration. When ready, replace in-memory
+// operations with supabase.from('users') queries from src/lib/supabaseClient.ts.
 
 const mockWithPasswords = mockUsers.map(u => ({ ...u, active: true }));
 const extraCollaborators = mockCollaborators

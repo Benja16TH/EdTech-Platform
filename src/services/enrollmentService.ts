@@ -1,5 +1,7 @@
 import { UserEnrollment, CourseAssignment } from '../types';
 import { mockEnrollments, mockAssignments } from '../data/extendedMockData';
+// v2.0.1 — Prepared for Supabase migration. When ready, replace in-memory
+// operations with supabase queries from src/lib/supabaseClient.ts.
 
 let enrollmentsData: UserEnrollment[] = [...mockEnrollments];
 let assignmentsData: CourseAssignment[] = [...mockAssignments];

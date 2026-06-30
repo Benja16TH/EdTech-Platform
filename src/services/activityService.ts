@@ -1,4 +1,6 @@
 import { ActivityLog, ActivityAction } from '../types';
+// v2.0.1 — Prepared for Supabase migration. When ready, replace in-memory
+// operations with supabase.from('activity_logs') queries from src/lib/supabaseClient.ts.
 
 let activityLogsData: ActivityLog[] = [];
 

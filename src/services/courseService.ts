@@ -1,5 +1,7 @@
 import { Course } from '../types';
 import { mockCourses } from '../data/mockData';
+// v2.0.1 — Prepared for Supabase migration. When ready, replace in-memory
+// operations with supabase.from('courses') queries from src/lib/supabaseClient.ts.
 
 let coursesData: Course[] = [...mockCourses];
 

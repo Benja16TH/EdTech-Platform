@@ -1,5 +1,7 @@
 import { Certificate } from '../types';
 import { mockCertificates } from '../data/extendedMockData';
+// v2.0.1 — Prepared for Supabase migration. When ready, replace in-memory
+// operations with supabase.from('certificates') queries from src/lib/supabaseClient.ts.
 
 let certificatesData: Certificate[] = [...mockCertificates];
 
