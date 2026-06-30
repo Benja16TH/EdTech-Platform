@@ -157,9 +157,12 @@ export async function getCourses(): Promise<Course[]> {
       if (result.length > 0) {
         coursesData = result;
       }
+      alert(`[DBG] Cursos desde Supabase. Primer ID: ${result[0]?.id}`);
       return [...result];
     }
+    alert('[DBG] fetchFullCourses devolvió null — usando datos mock');
   }
+  alert(`[DBG] Cursos desde mock. Primer ID: ${coursesData[0]?.id}`);
   return [...coursesData];
 }
 
