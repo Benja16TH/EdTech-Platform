@@ -232,25 +232,17 @@ export async function updateCourse(courseId: string, courseData: Partial<Course>
           const modules = courseData.modules !== undefined
             ? await persistModules(courseId, courseData.modules)
             : await (async () => {
-                const { data: modRows } = await supabase!
-                  .from('modules')
-                  .select('*')
-                  .eq('course_id', courseId)
-                  .order('order_index', { ascending: true });
-                if (!modRows) return [];
-                const mIds = modRows.map(m => m.id);
-                const { data: lesRows } = await supabase!
-                  .from('lessons')
-                  .select('*')
-                  .in('module_id', mIds)
-                  .order('order_index', { ascending: true });
-                const byMod: Record<string, Lesson[]> = {};
-                for (const lr of lesRows || []) {
-                  const mid = lr.module_id as string;
-                  if (!byMod[mid]) byMod[mid] = [];
-                  byMod[mid].push(mapLessonRow(lr));
-                }
-                return modRows.map(mr => mapModuleRow(mr, byMod[mr.id as string] || []));
+                const { data: full } = await supabase!
+                  .from('courses')
+                  .select('*, modules:modules(*, lessons:lessons(*))')
+                  .eq('id', courseId)
+                  .single();
+                if (!full) return [];
+                const rawModules = (full.modules as Record<string, unknown>[]) || [];
+                return rawModules.map((mr: Record<string, unknown>) => {
+                  const rawLessons = (mr.lessons as Record<string, unknown>[]) || [];
+                  return mapModuleRow(mr, rawLessons.map(mapLessonRow));
+                });
               })();
 
           const updated = mapCourseRow(cr, modules);
