@@ -18,9 +18,8 @@ import { mockCourses, mockUsers } from './data/mockData';
 import { mockCollaborators } from './data/extendedMockData';
 import { getCurrentSession, signOutFromSupabase } from './lib/auth';
 import { getCourses, createCourse, updateCourse, deleteCourse } from './services/courseService';
+import { getEnrollments, getAssignments, assignCourse, unassignCourse, updateEnrollment } from './services/enrollmentService';
 import {
-  mockEnrollments,
-  mockAssignments,
   mockSupportTickets,
   mockFinalAssessments,
   mockUserAssessmentAttempts,
@@ -56,8 +55,8 @@ type AppView =
 
 function App() {
   const [courses, setCourses] = useState<Course[]>(mockCourses);
-  const [enrollments, setEnrollments] = useState<UserEnrollment[]>(mockEnrollments);
-  const [assignments, setAssignments] = useState<CourseAssignmentType[]>(mockAssignments);
+  const [enrollments, setEnrollments] = useState<UserEnrollment[]>([]);
+  const [assignments, setAssignments] = useState<CourseAssignmentType[]>([]);
   const [tickets, setTickets] = useState<SupportTicket[]>(mockSupportTickets);
   const [assessments, setAssessments] = useState<FinalAssessment[]>(mockFinalAssessments);
   const [assessmentAttempts, setAssessmentAttempts] = useState<UserAssessmentAttempt[]>(mockUserAssessmentAttempts);
@@ -90,6 +89,8 @@ function App() {
   useEffect(() => {
     if (currentUser) {
       getCourses().then(setCourses);
+      getEnrollments().then(setEnrollments);
+      getAssignments().then(setAssignments);
     }
   }, [currentUser]);
 
@@ -213,40 +214,29 @@ const generateCertificate = (
     setCurrentView('profile');
   };
 
-  const handleAssignCourse = (userId: string, courseId: string) => {
-    const exists = assignments.some(a => a.userId === userId && a.courseId === courseId);
-  if (!exists) {
-  const newAssignment: CourseAssignmentType = {
-    id: `assign_${Date.now()}`,
-    userId,
-    courseId,
-    assignedAt: new Date(),
+  const handleAssignCourse = async (userId: string, courseId: string) => {
+    const result = await assignCourse(userId, courseId);
+    if (result) {
+      setAssignments(prev => [...prev, result]);
+      const course = courses.find(c => c.id === courseId);
+      if (course) {
+        setNotifications(prev => [...prev, {
+          id: `notif_${Date.now()}`,
+          userId,
+          type: 'new_course',
+          title: 'Nuevo curso asignado',
+          message: `Se te ha asignado el curso "${course.title}"`,
+          read: false,
+          createdAt: new Date(),
+        }]);
+        addActivityLog(userId, 'course_assigned', `Curso "${course.title}" asignado`);
+      }
+    }
   };
 
-  setAssignments([...assignments, newAssignment]);
-
-  const course = courses.find(c => c.id === courseId);
-
-  if (course) {
-    setNotifications(prev => [
-      ...prev,
-      {
-        id: `notif_${Date.now()}`,
-        userId,
-        type: 'new_course',
-        title: 'Nuevo curso asignado',
-        message: `Se te ha asignado el curso "${course.title}"`,
-        read: false,
-        createdAt: new Date(),
-      },
-    ]);
-    addActivityLog(userId, 'course_assigned', `Curso "${course.title}" asignado`);
-  }
-}
-  };
-
-  const handleUnassignCourse = (userId: string, courseId: string) => {
-    setAssignments(assignments.filter(a => !(a.userId === userId && a.courseId === courseId)));
+  const handleUnassignCourse = async (userId: string, courseId: string) => {
+    await unassignCourse(userId, courseId);
+    setAssignments(prev => prev.filter(a => !(a.userId === userId && a.courseId === courseId)));
   };
 
  const handleUpdateTicket = (
@@ -329,18 +319,17 @@ const generateCertificate = (
     const score = Math.round((correctCount / assessment.questions.length) * 100);
     const passed = score >= assessment.passingPercentage;
 if (passed) {
-  setEnrollments(prev =>
-    prev.map(enrollment =>
+  setEnrollments(prev => {
+    const updated = prev.map(enrollment =>
       enrollment.userId === currentUser?.id &&
       enrollment.courseId === selectedCourseId
-        ? {
-            ...enrollment,
-            courseCompleted: true,
-          
-          }
+        ? { ...enrollment, courseCompleted: true, progress: 100 }
         : enrollment
-    )
-  );
+    );
+    const enr = updated.find(e => e.userId === currentUser?.id && e.courseId === selectedCourseId);
+    if (enr) updateEnrollment(enr.id, { courseCompleted: true, progress: 100 });
+    return updated;
+  });
   generateCertificate(
   currentUser!.id,
   selectedCourseId!
@@ -385,44 +374,37 @@ if (passed) {
   const handleProgressUpdate = (courseId: string, lessonId: string) => {
     if (!currentUser) return;
 
-    setEnrollments(prevEnrollments => {
-      const existingIndex = prevEnrollments.findIndex(
-        e => e.userId === currentUser.id && e.courseId === courseId
-      );
+    setEnrollments(prev => {
+      const course = courses.find(c => c.id === courseId);
+      const totalLessons = course ? course.modules.flatMap(m => m.lessons).length : 1;
+      const idx = prev.findIndex(e => e.userId === currentUser.id && e.courseId === courseId);
 
-      if (existingIndex !== -1) {
-        const enrollment = prevEnrollments[existingIndex];
-        if (!enrollment.completedLessons.includes(lessonId)) {
-          const updatedCompletedLessons = [...enrollment.completedLessons, lessonId];
-          const course = courses.find(c => c.id === courseId);
-          const totalLessons = course ? course.modules.flatMap(m => m.lessons).length : 1;
-          const newProgress = Math.round((updatedCompletedLessons.length / totalLessons) * 100);
+      if (idx !== -1) {
+        const enrollment = prev[idx];
+        if (enrollment.completedLessons.includes(lessonId)) return prev;
 
-          const updated = [...prevEnrollments];
-          updated[existingIndex] = {
-            ...enrollment,
-            completedLessons: updatedCompletedLessons,
-            progress: newProgress,
-          };
-          return updated;
-        }
-        return prevEnrollments;
-      } else {
-        const course = courses.find(c => c.id === courseId);
-        const totalLessons = course ? course.modules.flatMap(m => m.lessons).length : 1;
-        const newProgress = Math.round((1 / totalLessons) * 100);
+        const completedLessons = [...enrollment.completedLessons, lessonId];
+        const progress = Math.round((completedLessons.length / totalLessons) * 100);
+        const updated = { ...enrollment, completedLessons, progress };
 
-        const newEnrollment: UserEnrollment = {
-          id: `enr_${Date.now()}`,
-          userId: currentUser.id,
-          courseId,
-          progress: newProgress,
-          completedLessons: [lessonId],
-          enrolledAt: new Date(),
-          courseCompleted: false,
-        };
-        return [...prevEnrollments, newEnrollment];
+        const next = [...prev];
+        next[idx] = updated;
+
+        updateEnrollment(enrollment.id, { progress, completedLessons });
+
+        return next;
       }
+
+      const newEnrollment: UserEnrollment = {
+        id: `enr_${Date.now()}`,
+        userId: currentUser.id,
+        courseId,
+        progress: Math.round((1 / totalLessons) * 100),
+        completedLessons: [lessonId],
+        enrolledAt: new Date(),
+        courseCompleted: false,
+      };
+      return [...prev, newEnrollment];
     });
   };
 
