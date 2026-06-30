@@ -7,6 +7,14 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 let coursesData: Course[] = [...mockCourses];
 
 function mapCourseRow(row: Record<string, unknown>, modules: Module[] = []): Course {
+  let learningObjectives: string[] = [];
+  const lo = row.learning_objectives;
+  if (Array.isArray(lo)) {
+    learningObjectives = lo as string[];
+  } else if (typeof lo === 'string') {
+    try { learningObjectives = JSON.parse(lo); } catch { /* ignore */ }
+  }
+
   return {
     id: row.id as string,
     title: row.title as string,
@@ -14,7 +22,7 @@ function mapCourseRow(row: Record<string, unknown>, modules: Module[] = []): Cou
     category: row.category as string,
     level: row.level as 'Básico' | 'Intermedio' | 'Avanzado',
     duration: row.duration as string,
-    learningObjectives: JSON.parse((row.learning_objectives as string) || '[]'),
+    learningObjectives,
     status: (row.status as 'active' | 'inactive') || 'active',
     thumbnail: row.thumbnail as string,
     modules,
