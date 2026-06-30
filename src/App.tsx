@@ -17,6 +17,7 @@ import EmployeeProfile from './components/EmployeeProfile';
 import { mockCourses, mockUsers } from './data/mockData';
 import { mockCollaborators } from './data/extendedMockData';
 import { getCurrentSession, signOutFromSupabase } from './lib/auth';
+import { getCourses, createCourse, updateCourse, deleteCourse } from './services/courseService';
 import {
   mockEnrollments,
   mockAssignments,
@@ -85,6 +86,12 @@ function App() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      getCourses().then(setCourses);
+    }
+  }, [currentUser]);
 
   const addActivityLog = (userId: string | null, action: ActivityAction, description: string) => {
     const log: ActivityLog = {
@@ -168,17 +175,23 @@ const generateCertificate = (
     setCurrentView('admin');
   };
 
-  const handleAddCourse = (course: Course) => {
-    setCourses([...courses, course]);
+  const handleAddCourse = async (course: Course) => {
+    const created = await createCourse(course);
+    setCourses(prev => [...prev, created]);
+    addActivityLog(currentUser?.id || '', 'course_assigned', `Curso "${created.title}" creado`);
   };
 
-  const handleUpdateCourse = (updatedCourse: Course) => {
-    setCourses(courses.map(c => (c.id === updatedCourse.id ? updatedCourse : c)));
+  const handleUpdateCourse = async (updatedCourse: Course) => {
+    const result = await updateCourse(updatedCourse.id, updatedCourse);
+    if (result) {
+      setCourses(prev => prev.map(c => (c.id === result.id ? result : c)));
+    }
   };
 
-  const handleDeleteCourse = (courseId: string) => {
-    setCourses(courses.filter(c => c.id !== courseId));
-    setAssignments(assignments.filter(a => a.courseId !== courseId));
+  const handleDeleteCourse = async (courseId: string) => {
+    await deleteCourse(courseId);
+    setCourses(prev => prev.filter(c => c.id !== courseId));
+    setAssignments(prev => prev.filter(a => a.courseId !== courseId));
   };
 
   const handleAddUser = (newUser: User) => {
