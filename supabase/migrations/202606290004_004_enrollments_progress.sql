@@ -23,6 +23,7 @@ ALTER TABLE public.course_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
 
 -- RLS: admins can manage assignments; users can view their own
+DROP POLICY IF EXISTS "Users can view own assignments" ON public.course_assignments;
 CREATE POLICY "Users can view own assignments"
   ON public.course_assignments FOR SELECT
   TO authenticated
@@ -30,6 +31,7 @@ CREATE POLICY "Users can view own assignments"
     SELECT 1 FROM public.users WHERE id = auth.uid()::uuid AND role = 'admin'
   ));
 
+DROP POLICY IF EXISTS "Admins can manage assignments" ON public.course_assignments;
 CREATE POLICY "Admins can manage assignments"
   ON public.course_assignments FOR ALL
   TO authenticated
@@ -37,11 +39,13 @@ CREATE POLICY "Admins can manage assignments"
     SELECT 1 FROM public.users WHERE id = auth.uid()::uuid AND role = 'admin'
   ));
 
+DROP POLICY IF EXISTS "Users can view own lesson progress" ON public.lesson_progress;
 CREATE POLICY "Users can view own lesson progress"
   ON public.lesson_progress FOR SELECT
   TO authenticated
   USING (auth.uid()::text = user_id::text);
 
+DROP POLICY IF EXISTS "Users can update own lesson progress" ON public.lesson_progress;
 CREATE POLICY "Users can update own lesson progress"
   ON public.lesson_progress FOR ALL
   TO authenticated

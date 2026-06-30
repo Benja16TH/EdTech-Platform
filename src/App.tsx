@@ -19,6 +19,7 @@ import { mockCollaborators } from './data/extendedMockData';
 import { getCurrentSession, signOutFromSupabase } from './lib/auth';
 import { getCourses, createCourse, updateCourse, deleteCourse } from './services/courseService';
 import { getEnrollments, getAssignments, assignCourse, unassignCourse, updateEnrollment } from './services/enrollmentService';
+import { getUsers } from './services/userService';
 import {
   mockSupportTickets,
   mockFinalAssessments,
@@ -91,6 +92,7 @@ function App() {
       getCourses().then(setCourses);
       getEnrollments().then(setEnrollments);
       getAssignments().then(setAssignments);
+      getUsers().then(setUsers);
     }
   }, [currentUser]);
 
