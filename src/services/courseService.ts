@@ -50,99 +50,45 @@ function mapLessonRow(row: Record<string, unknown>): Lesson {
 }
 
 async function fetchFullCourses(): Promise<Course[] | null> {
-  const { data: courseRows, error: courseErr } = await supabase!
+  const { data, error } = await supabase!
     .from('courses')
-    .select('*')
+    .select('*, modules:modules(*, lessons:lessons(*))')
     .order('created_at', { ascending: true });
 
-  if (courseErr) {
-    console.error('[courseService] Error fetching courses:', courseErr.message);
+  if (error) {
+    console.error('[courseService] Error fetching courses:', error.message);
     return null;
   }
-  if (!courseRows || courseRows.length === 0) return [];
+  if (!data || data.length === 0) return [];
 
-  const courseIds = courseRows.map(c => c.id);
-
-  const { data: moduleRows, error: modErr } = await supabase!
-    .from('modules')
-    .select('*')
-    .in('course_id', courseIds)
-    .order('order_index', { ascending: true });
-
-  if (modErr) {
-    console.error('[courseService] Error fetching modules:', modErr.message);
-    return null;
-  }
-
-  let modulesByCourse: Record<string, Module[]> = {};
-  if (moduleRows && moduleRows.length > 0) {
-    const moduleIds = moduleRows.map(m => m.id);
-
-    const { data: lessonRows, error: lesErr } = await supabase!
-      .from('lessons')
-      .select('*')
-      .in('module_id', moduleIds)
-      .order('order_index', { ascending: true });
-
-    if (lesErr) {
-      console.error('[courseService] Error fetching lessons:', lesErr.message);
-      return null;
-    }
-
-    const lessonsByModule: Record<string, Lesson[]> = {};
-    for (const lr of lessonRows || []) {
-      const mid = lr.module_id as string;
-      if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
-      lessonsByModule[mid].push(mapLessonRow(lr));
-    }
-
-    for (const mr of moduleRows) {
-      const cid = mr.course_id as string;
-      if (!modulesByCourse[cid]) modulesByCourse[cid] = [];
-      modulesByCourse[cid].push(mapModuleRow(mr, lessonsByModule[mr.id as string] || []));
-    }
-  }
-
-  return courseRows.map(cr => mapCourseRow(cr, modulesByCourse[cr.id as string] || []));
+  return data.map((courseRow: Record<string, unknown>) => {
+    const rawModules = (courseRow.modules as Record<string, unknown>[]) || [];
+    const modules: Module[] = rawModules.map((modRow: Record<string, unknown>) => {
+      const rawLessons = (modRow.lessons as Record<string, unknown>[]) || [];
+      const lessons: Lesson[] = rawLessons.map(mapLessonRow);
+      return mapModuleRow(modRow, lessons);
+    });
+    return mapCourseRow(courseRow, modules);
+  });
 }
 
 async function fetchCourseWithModules(courseId: string): Promise<Course | null> {
-  const { data: cr, error: courseErr } = await supabase!
+  const { data, error } = await supabase!
     .from('courses')
-    .select('*')
+    .select('*, modules:modules(*, lessons:lessons(*))')
     .eq('id', courseId)
     .single();
 
-  if (courseErr || !cr) return null;
+  if (error || !data) return null;
 
-  const { data: moduleRows } = await supabase!
-    .from('modules')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_index', { ascending: true });
+  const rawModules = (data.modules as Record<string, unknown>[]) || [];
+  const modules: Module[] = rawModules.map((modRow: Record<string, unknown>) => {
+    const rawLessons = (modRow.lessons as Record<string, unknown>[]) || [];
+    const lessons: Lesson[] = rawLessons.map(mapLessonRow);
+    return mapModuleRow(modRow, lessons);
+  });
 
-  const moduleIds = (moduleRows || []).map(m => m.id);
-
-  let lessonsByModule: Record<string, Lesson[]> = {};
-  if (moduleIds.length > 0) {
-    const { data: lessonRows } = await supabase!
-      .from('lessons')
-      .select('*')
-      .in('module_id', moduleIds)
-      .order('order_index', { ascending: true });
-
-    for (const lr of lessonRows || []) {
-      const mid = lr.module_id as string;
-      if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
-      lessonsByModule[mid].push(mapLessonRow(lr));
-    }
-  }
-
-  const modules = (moduleRows || []).map(mr =>
-    mapModuleRow(mr, lessonsByModule[mr.id as string] || [])
-  );
-
-  return mapCourseRow(cr, modules);
+  return mapCourseRow(data, modules);
 }
 
 async function persistModules(courseId: string, modules: Module[]): Promise<Module[]> {
