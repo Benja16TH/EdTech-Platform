@@ -74,10 +74,10 @@ async function fetchFullCourses(): Promise<Course[] | null> {
     return null;
   }
 
-  const moduleIds = (moduleRows || []).map(m => m.id);
+  let modulesByCourse: Record<string, Module[]> = {};
+  if (moduleRows && moduleRows.length > 0) {
+    const moduleIds = moduleRows.map(m => m.id);
 
-  let lessonsByModule: Record<string, Lesson[]> = {};
-  if (moduleIds.length > 0) {
     const { data: lessonRows, error: lesErr } = await supabase!
       .from('lessons')
       .select('*')
@@ -89,18 +89,18 @@ async function fetchFullCourses(): Promise<Course[] | null> {
       return null;
     }
 
+    const lessonsByModule: Record<string, Lesson[]> = {};
     for (const lr of lessonRows || []) {
       const mid = lr.module_id as string;
       if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
       lessonsByModule[mid].push(mapLessonRow(lr));
     }
-  }
 
-  const modulesByCourse: Record<string, Module[]> = {};
-  for (const mr of moduleRows || []) {
-    const cid = mr.course_id as string;
-    if (!modulesByCourse[cid]) modulesByCourse[cid] = [];
-    modulesByCourse[cid].push(mapModuleRow(mr, lessonsByModule[mr.id as string] || []));
+    for (const mr of moduleRows) {
+      const cid = mr.course_id as string;
+      if (!modulesByCourse[cid]) modulesByCourse[cid] = [];
+      modulesByCourse[cid].push(mapModuleRow(mr, lessonsByModule[mr.id as string] || []));
+    }
   }
 
   return courseRows.map(cr => mapCourseRow(cr, modulesByCourse[cr.id as string] || []));
@@ -206,7 +206,9 @@ export async function getCourses(): Promise<Course[]> {
   if (isSupabaseConfigured()) {
     const result = await fetchFullCourses();
     if (result !== null) {
-      coursesData = result;
+      if (result.length > 0) {
+        coursesData = result;
+      }
       return [...result];
     }
   }
@@ -261,56 +263,57 @@ export async function createCourse(courseData: Omit<Course, 'id'> & { id?: strin
 export async function updateCourse(courseId: string, courseData: Partial<Course>): Promise<Course | null> {
   if (isSupabaseConfigured()) {
     const existing = await fetchCourseWithModules(courseId);
-    if (!existing) return null;
+    if (existing) {
+      const payload: Record<string, unknown> = {};
+      if (courseData.title !== undefined) payload.title = courseData.title;
+      if (courseData.description !== undefined) payload.description = courseData.description;
+      if (courseData.category !== undefined) payload.category = courseData.category;
+      if (courseData.level !== undefined) payload.level = courseData.level;
+      if (courseData.duration !== undefined) payload.duration = courseData.duration;
+      if (courseData.learningObjectives !== undefined) payload.learning_objectives = JSON.stringify(courseData.learningObjectives);
+      if (courseData.status !== undefined) payload.status = courseData.status;
+      if (courseData.thumbnail !== undefined) payload.thumbnail = courseData.thumbnail;
 
-    const payload: Record<string, unknown> = {};
-    if (courseData.title !== undefined) payload.title = courseData.title;
-    if (courseData.description !== undefined) payload.description = courseData.description;
-    if (courseData.category !== undefined) payload.category = courseData.category;
-    if (courseData.level !== undefined) payload.level = courseData.level;
-    if (courseData.duration !== undefined) payload.duration = courseData.duration;
-    if (courseData.learningObjectives !== undefined) payload.learning_objectives = JSON.stringify(courseData.learningObjectives);
-    if (courseData.status !== undefined) payload.status = courseData.status;
-    if (courseData.thumbnail !== undefined) payload.thumbnail = courseData.thumbnail;
+      if (Object.keys(payload).length > 0) {
+        const { data: cr, error: ce } = await supabase!
+          .from('courses')
+          .update(payload)
+          .eq('id', courseId)
+          .select()
+          .single();
 
-    if (Object.keys(payload).length > 0) {
-      const { data: cr, error: ce } = await supabase!
-        .from('courses')
-        .update(payload)
-        .eq('id', courseId)
-        .select()
-        .single();
+        if (!ce && cr) {
+          const modules = courseData.modules !== undefined
+            ? await persistModules(courseId, courseData.modules)
+            : await (async () => {
+                const { data: modRows } = await supabase!
+                  .from('modules')
+                  .select('*')
+                  .eq('course_id', courseId)
+                  .order('order_index', { ascending: true });
+                if (!modRows) return [];
+                const mIds = modRows.map(m => m.id);
+                const { data: lesRows } = await supabase!
+                  .from('lessons')
+                  .select('*')
+                  .in('module_id', mIds)
+                  .order('order_index', { ascending: true });
+                const byMod: Record<string, Lesson[]> = {};
+                for (const lr of lesRows || []) {
+                  const mid = lr.module_id as string;
+                  if (!byMod[mid]) byMod[mid] = [];
+                  byMod[mid].push(mapLessonRow(lr));
+                }
+                return modRows.map(mr => mapModuleRow(mr, byMod[mr.id as string] || []));
+              })();
 
-      if (ce || !cr) return null;
-
-      const modules = courseData.modules !== undefined
-        ? await persistModules(courseId, courseData.modules)
-        : await (async () => {
-            const { data: modRows } = await supabase!
-              .from('modules')
-              .select('*')
-              .eq('course_id', courseId)
-              .order('order_index', { ascending: true });
-            if (!modRows) return [];
-            const mIds = modRows.map(m => m.id);
-            const { data: lesRows } = await supabase!
-              .from('lessons')
-              .select('*')
-              .in('module_id', mIds)
-              .order('order_index', { ascending: true });
-            const byMod: Record<string, Lesson[]> = {};
-            for (const lr of lesRows || []) {
-              const mid = lr.module_id as string;
-              if (!byMod[mid]) byMod[mid] = [];
-              byMod[mid].push(mapLessonRow(lr));
-            }
-            return modRows.map(mr => mapModuleRow(mr, byMod[mr.id as string] || []));
-          })();
-
-      const updated = mapCourseRow(cr, modules);
-      const idx = coursesData.findIndex(c => c.id === courseId);
-      if (idx !== -1) coursesData = [...coursesData.slice(0, idx), updated, ...coursesData.slice(idx + 1)];
-      return updated;
+          const updated = mapCourseRow(cr, modules);
+          const idx = coursesData.findIndex(c => c.id === courseId);
+          if (idx !== -1) coursesData = [...coursesData.slice(0, idx), updated, ...coursesData.slice(idx + 1)];
+          else coursesData = [...coursesData, updated];
+          return updated;
+        }
+      }
     }
   }
 
@@ -328,7 +331,6 @@ export async function deleteCourse(courseId: string): Promise<boolean> {
       coursesData = coursesData.filter(c => c.id !== courseId);
       return true;
     }
-    return false;
   }
   const index = coursesData.findIndex(c => c.id === courseId);
   if (index === -1) return false;
