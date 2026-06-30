@@ -62,9 +62,11 @@ async function fetchFullCourses(): Promise<Course[] | null> {
   if (!data || data.length === 0) return [];
 
   return data.map((courseRow: Record<string, unknown>) => {
-    const rawModules = (courseRow.modules as Record<string, unknown>[]) || [];
+    const rawModules = ((courseRow.modules as Record<string, unknown>[]) || [])
+      .sort((a, b) => (a.order_index as number) - (b.order_index as number));
     const modules: Module[] = rawModules.map((modRow: Record<string, unknown>) => {
-      const rawLessons = (modRow.lessons as Record<string, unknown>[]) || [];
+      const rawLessons = ((modRow.lessons as Record<string, unknown>[]) || [])
+        .sort((a, b) => (a.order_index as number) - (b.order_index as number));
       const lessons: Lesson[] = rawLessons.map(mapLessonRow);
       return mapModuleRow(modRow, lessons);
     });
