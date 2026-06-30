@@ -49,35 +49,51 @@ function mapLessonRow(row: Record<string, unknown>): Lesson {
   };
 }
 
-async function fetchFullCourses(): Promise<Course[]> {
+async function fetchFullCourses(): Promise<Course[] | null> {
   const { data: courseRows, error: courseErr } = await supabase!
     .from('courses')
     .select('*')
     .order('created_at', { ascending: true });
 
-  if (courseErr || !courseRows) throw courseErr;
+  if (courseErr) {
+    console.error('[courseService] Error fetching courses:', courseErr);
+    return null;
+  }
+  if (!courseRows || courseRows.length === 0) return [];
 
   const courseIds = courseRows.map(c => c.id);
 
-  const { data: moduleRows } = await supabase!
+  const { data: moduleRows, error: modErr } = await supabase!
     .from('modules')
     .select('*')
     .in('course_id', courseIds)
     .order('order_index', { ascending: true });
 
+  if (modErr) {
+    console.error('[courseService] Error fetching modules:', modErr);
+    return null;
+  }
+
   const moduleIds = (moduleRows || []).map(m => m.id);
 
-  const { data: lessonRows } = await supabase!
-    .from('lessons')
-    .select('*')
-    .in('module_id', moduleIds)
-    .order('order_index', { ascending: true });
+  let lessonsByModule: Record<string, Lesson[]> = {};
+  if (moduleIds.length > 0) {
+    const { data: lessonRows, error: lesErr } = await supabase!
+      .from('lessons')
+      .select('*')
+      .in('module_id', moduleIds)
+      .order('order_index', { ascending: true });
 
-  const lessonsByModule: Record<string, Lesson[]> = {};
-  for (const lr of lessonRows || []) {
-    const mid = lr.module_id as string;
-    if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
-    lessonsByModule[mid].push(mapLessonRow(lr));
+    if (lesErr) {
+      console.error('[courseService] Error fetching lessons:', lesErr);
+      return null;
+    }
+
+    for (const lr of lessonRows || []) {
+      const mid = lr.module_id as string;
+      if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
+      lessonsByModule[mid].push(mapLessonRow(lr));
+    }
   }
 
   const modulesByCourse: Record<string, Module[]> = {};
@@ -107,17 +123,19 @@ async function fetchCourseWithModules(courseId: string): Promise<Course | null> 
 
   const moduleIds = (moduleRows || []).map(m => m.id);
 
-  const { data: lessonRows } = await supabase!
-    .from('lessons')
-    .select('*')
-    .in('module_id', moduleIds)
-    .order('order_index', { ascending: true });
+  let lessonsByModule: Record<string, Lesson[]> = {};
+  if (moduleIds.length > 0) {
+    const { data: lessonRows } = await supabase!
+      .from('lessons')
+      .select('*')
+      .in('module_id', moduleIds)
+      .order('order_index', { ascending: true });
 
-  const lessonsByModule: Record<string, Lesson[]> = {};
-  for (const lr of lessonRows || []) {
-    const mid = lr.module_id as string;
-    if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
-    lessonsByModule[mid].push(mapLessonRow(lr));
+    for (const lr of lessonRows || []) {
+      const mid = lr.module_id as string;
+      if (!lessonsByModule[mid]) lessonsByModule[mid] = [];
+      lessonsByModule[mid].push(mapLessonRow(lr));
+    }
   }
 
   const modules = (moduleRows || []).map(mr =>
@@ -186,10 +204,10 @@ async function persistModules(courseId: string, modules: Module[]): Promise<Modu
 
 export async function getCourses(): Promise<Course[]> {
   if (isSupabaseConfigured()) {
-    try {
-      return await fetchFullCourses();
-    } catch {
-      // fall through to mock
+    const result = await fetchFullCourses();
+    if (result !== null) {
+      coursesData = result;
+      return [...result];
     }
   }
   return [...coursesData];
